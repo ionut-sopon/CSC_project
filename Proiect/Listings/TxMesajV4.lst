@@ -1,0 +1,115 @@
+C51 COMPILER V8.02   TXMESAJV4                                                             03/05/2023 12:07:29 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE TXMESAJV4
+OBJECT MODULE PLACED IN .\Objects\TxMesajV4.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE TxMesajV4.c LARGE BROWSE INCDIR(.\BIG8051\Include) DEBUG OBJECTEXTEND PRINT
+                    -(.\Listings\TxMesajV4.lst) TABS(3) OBJECT(.\Objects\TxMesajV4.obj)
+
+line level    source
+
+   1          #include <c8051F040.h>  // declaratii SFR
+   2          #include <uart1.h>
+   3          #include <Protocol.h>
+   4          #include <UserIO.h>
+   5          
+   6          extern unsigned char STARE_NOD;     // starea initiala a nodului curent
+   7          extern unsigned char TIP_NOD;       // tip nod initial: Nu Master, Nu Jeton
+   8          
+   9          extern nod retea[];
+  10          
+  11          extern unsigned char timeout;    // variabila globala care indica expirare timp de asteptare eveniment
+  12          //********************************************************************************************************
+             -***
+  13          void TxMesaj(unsigned char i);   // transmisie mesaj destinat nodului i
+  14          void bin2ascii(unsigned char ch, unsigned char *ptr); // functie de conversie octet din binar in ASCII HEX
+  15          
+  16          //********************************************************************************************************
+             -***
+  17          void TxMesaj(unsigned char i){               // transmite mesajul din buffer-ul i
+  18   1         unsigned char sc, j;
+  19   1      
+  20   1                                                                  // daca este un mesaj de interogare (POLL=0)
+  21   1                                                                     // calculeaza direct sc
+  22   1                                                                                                                        
+  23   1                                                                  // altfel...
+  24   1                                                                     // initializeaza SC  cu adresa HW a nodului destinatie
+  25   1                                                                     // ia in adresa_hw_src
+  26   1                                                                     // ia in calcul tipul mesajului
+  27   1                                                                     // ia in calcul adresa nodului sursa al mesajului
+  28   1                                                                     // ia in calcul adresa nodului destinatie al mesajului
+  29   1                                                                     // ia in calcul lungimea datelor
+  30   1                                                                        
+  31   1                                                                        // ia in calcul datele
+  32   1                                                                     // stocheaza suma de control
+  33   1                                                               
+  34   1         
+  35   1                                                                  // urmeaza transmisia octetului de adresa
+  36   1                                                                  // validare Tx si Rx UART1
+  37   1                                                                  // validare Tx si Rx RS485
+  38   1      
+  39   1                                                                  // transmite adresa HW a nodului dest
+  40   1                                                                  
+  41   1                                                                  // daca caracterul primit e diferit de cel transmis ...
+  42   1                                                                        // dezactivare Tx UART1
+  43   1                                                                        // dezactivare Tx RS485
+  44   1                                                                        // afiseaza Eroare coliziune
+  45   1                                                                        // asteapta 1 secunda
+  46   1                                                                        // termina transmisia (revine)
+  47   1                                                                  
+  48   1      
+  49   1                                                                  // urmeaza tranmisia octetilor de date
+  50   1                                                                  // dezactivare Rx UART1
+  51   1      
+  52   1                                                                  // transmite adresa HW a nodului sursa
+C51 COMPILER V8.02   TXMESAJV4                                                             03/05/2023 12:07:29 PAGE 2   
+
+  53   1                                                                  // transmite tipul mesajului
+  54   1         
+  55   1                                                                  // Daca mesajul este de date ...
+  56   1                                                                     // transmite adresa nodului sursa mesaj
+  57   1                                                                     // transmite lungimea mesajului
+  58   1                                                                     
+  59   1                                                                        // transmite octetii de date
+  60   1                                                               
+  61   1                                                                  // transmite suma de control
+  62   1      
+  63   1                                                                  // activare Rx UART1
+  64   1                                                                  
+  65   1                                                                  // slave-ul considera acum ca a transmis mesajul
+  66   1         
+  67   1                                                                  // // asteapta transmisia/receptia ultimului caracter
+  68   1      
+  69   1                                                                  // dezactivare Tx si RX UART1
+  70   1                                                                  // dezactivare Tx si Rx RS485
+  71   1      }
+*** WARNING C280 IN LINE 17 OF TXMESAJV4.C: 'i': unreferenced local variable
+*** WARNING C280 IN LINE 18 OF TXMESAJV4.C: 'sc': unreferenced local variable
+*** WARNING C280 IN LINE 18 OF TXMESAJV4.C: 'j': unreferenced local variable
+  72          
+  73          //********************************************************************************************************
+             -***
+  74          void bin2ascii(unsigned char ch, unsigned char *ptr){ // converteste octetul ch in doua caractere ASCII HE
+             -X puse la adresa ptr
+  75   1         unsigned char first, second;
+  76   1         first = (ch & 0xF0)>>4;                // extrage din ch primul digit
+  77   1         second = ch & 0x0F;                       // extrage din ch al doilea digit
+  78   1         if(first > 9) *ptr++ = first - 10 + 'A';  // converteste primul digit daca este litera
+  79   1         else *ptr++ = first + '0';          // converteste primul digit daca este cifra
+  80   1         if(second > 9) *ptr++ = second - 10 + 'A';   // converteste al doilea digit daca este litera
+  81   1         else *ptr++ = second + '0';            // converteste al doilea digit daca este cifra
+  82   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     97    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       6
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  3 WARNING(S),  0 ERROR(S)

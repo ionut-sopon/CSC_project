@@ -1,0 +1,169 @@
+C51 COMPILER V9.59.0.0   MS                                                                04/03/2023 09:49:11 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MS
+OBJECT MODULE PLACED IN .\Objects\MS.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE MS.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\BIG8051\Include) DEBUG OBJE
+                    -CTEXTEND PRINT(.\Listings\MS.lst) TABS(2) OBJECT(.\Objects\MS.obj)
+
+line level    source
+
+   1          #include <c8051F040.h>  // declaratii SFR
+   2          #include <wdt.h>
+   3          #include <osc.h>
+   4          #include <port.h>
+   5          #include <uart1.h>
+   6          #include <lcd.h>
+   7          #include <keyb.h>
+   8          #include <Protocol.h>
+   9          #include <UserIO.h>
+  10          
+  11          nod retea[NR_NODURI];         // reteaua Master-Slave, cu 5 noduri
+  12          
+  13          unsigned char STARE_NOD = 0;    // starea initiala a nodului curent
+  14          unsigned char TIP_NOD = 0;    // tip nod initial: Slave sau No JET
+  15          unsigned char STARE_IO  = 0;    // stare interfata IO - asteptare comenzi
+  16          unsigned char ADR_MASTER;       // adresa nod master - numai MS
+  17          extern unsigned char AFISARE;
+  18          
+  19          //********************************************************************************************************
+             -***
+  20          void TxMesaj(unsigned char i);  // transmisie mesaj destinat nodului i
+  21          unsigned char RxMesaj(unsigned char i);   // primire mesaj de la nodul i
+  22          
+  23          //********************************************************************************************************
+             -***
+  24          void main (void) {
+  25   1        unsigned char i, found; // variabile locale
+  26   1        
+  27   1        WDT_Disable();                        // dezactiveaza WDT
+  28   1        SYSCLK_Init();                        // initializeaza si selecteaza oscilatorul ales in osc.h
+  29   1        UART1_Init(NINE_BIT, BAUDRATE_COM);   // initilizare UART1  - conectata la RS232-B (P1.0 si P1.1)
+  30   1        PORT_Init ();                         // conecteaza perifericele la pini (UART0, UART1) si stabileste tipul pinilor
+  31   1      
+  32   1        LCD_Init();                           // 2 linii, display ON, cursor OFF, pozitia initiala (0,0)
+  33   1        KEYB_Init();
+  34   1        UART0_Init(EIGHT_BIT, BAUDRATE_IO);   // initializare UART0  - conectata la USB-UART (P0.0 si P0.1)
+  35   1        UART1_TxRxEN(1, 1);
+  36   1      
+  37   1        Timer0_Init();                        // initializare Timer 0
+  38   1      
+  39   1        EA = 1;                               // valideaza intreruperile
+  40   1        SFRPAGE = LEGACY_PAGE;                // selecteaza pagina 0 SFR
+  41   1        
+  42   1        for(i = 0; i < NR_NODURI; i++){       // initializare structuri de date
+  43   2          retea[i].full = 0;                  // initializeaza buffer gol pentru toate nodurile
+  44   2          retea[i].bufasc[0] = ':';           // pune primul caracter in buffer-ele ASCII ":"
+  45   2        }
+  46   1      
+  47   1        Afisare_meniu();                      // Afiseaza meniul de comenzi
+  48   1        
+  49   1          while(1){                           // bucla infinita
+  50   2                                      
+  51   2          switch(STARE_NOD){
+  52   3            case 0:                               // nodul este slave, asteapta mesaj de la master  
+C51 COMPILER V9.59.0.0   MS                                                                04/03/2023 09:49:11 PAGE 2   
+
+  53   3              switch(RxMesaj(ADR_NOD)){           // asteapta un mesaj de la master
+  54   4                case TMO: Error("\n\r Nod SLAVE -> MASTER!");             // anunta ca nodul curent devine master
+  55   4                          TIP_NOD = MASTER;                               // nodul curent devine master
+  56   4                          STARE_NOD = 2;                                  // trece in starea 2
+  57   4                          i = ADR_NOD;                                    // primul slave va fi cel care urmeaza dupa noul master
+  58   4                
+  59   4                        break;
+  60   4      
+  61   4                case ROK: Afisare_mesaj(); STARE_NOD = 1;       break;  // a primit un mesaj de la master, il afiseaza si
+             - trebuie sa raspunda
+  62   4                case CAN: Error("\n\r Mesaj incomplet!");       break;  // afiseaza eroare Mesaj incomplet
+  63   4                case TIP: Error("\n\r Mesaj nec!");             break;  // afiseaza eroare Tip mesaj necunoscut
+  64   4                case ESC: Error("\n\r Eroare SC!")  ;           break;  // afiseaza Eroare SC
+  65   4                default:  Error("\n\r Cod err nec!")  ;         break;  // afiseaza cod eroare necunoscut
+  66   4              }
+  67   3              
+  68   3              break;
+  69   3      
+  70   3            case 1:                               // nodul este slave, transmite mesaj catre master
+  71   3                found = 0;                        // se initializeaza variabila de gasire a unui nod cu mesaj cu 0
+  72   3                for(i = 0; i < NR_NODURI; i++){   // se verifica fiecare dintre noduri
+  73   4                  if(retea[i].full == 1){         // cauta sa gaseasca un mesaj util de transmis
+  74   5                    found = 1;
+  75   5                    break;                        // daca este gasit, verificarea celorlalte este intrerupta
+  76   5                  }
+  77   4                }     
+  78   3                if(found == 1){                   //daca gaseste un nod i
+  79   4                  retea[i].bufbin.adresa_hw_dest = ADR_MASTER;          // adresa HW dest este ADR_MASTER
+  80   4                  TxMesaj(i);                                           // transmite mesajul catre nodul i
+  81   4                }
+  82   3                else{                             // daca nu gaseste, construieste un mesaj in bufferul ADR_MASTER
+  83   4                  retea[ADR_MASTER].bufbin.adresa_hw_dest = ADR_MASTER; // adresa HW dest este ADR_MASTER
+  84   4                  retea[ADR_MASTER].bufbin.adresa_hw_src = ADR_NOD;     // adresa HW src este ADR_NOD
+  85   4                  retea[ADR_MASTER].bufbin.tipmes = POLL_MES;           // tip mesaj = POLL_MES
+  86   4                  TxMesaj(ADR_MASTER);                                  // transmite mesajul din bufferul ADR_MASTER
+  87   4                }
+  88   3                
+  89   3                STARE_NOD = 0;                    // trece in starea 0, sa astepte un nou mesaj de la master
+  90   3                
+  91   3              break;
+  92   3        
+  93   3            case 2:                               // tratare stare 2 si eventual comutare stare
+  94   3                do{
+  95   4                    i++;                                    // selecteaza urmatorul slave (incrementeaza i)
+  96   4                    if(i == NR_NODURI) i = 0;               // daca se ajunge capat, se reia de la 0
+  97   4                }
+  98   3                while(i == ADR_NOD);
+  99   3                
+ 100   3                retea[i].bufbin.adresa_hw_dest = i;         // adresa HW dest este i
+ 101   3                
+ 102   3                if(retea[i].full == 1) {                    // daca in bufferul i se afla un mesaj util, il transmite
+ 103   4                  TxMesaj(i);
+ 104   4                }
+ 105   3                else{                                       // altfel, construieste un mesaj de interogare in bufferul i
+ 106   4                  retea[i].bufbin.adresa_hw_src = ADR_NOD;  // adresa HW src este ADR_NOD
+ 107   4                  retea[i].bufbin.tipmes = POLL_MES;        // tip mesaj = POLL_MES
+ 108   4                  TxMesaj(i);                               // transmite mesajul din bufferul i
+ 109   4                }
+ 110   3                                    
+ 111   3                STARE_NOD = 3;                  // trece in starea 3, sa astepte raspunsul de la slave-ul i
+ 112   3                
+ 113   3              break;
+C51 COMPILER V9.59.0.0   MS                                                                04/03/2023 09:49:11 PAGE 3   
+
+ 114   3      
+ 115   3            case 3:                             // nodul este slave, asteapta mesaj de la master  
+ 116   3              switch(RxMesaj(i)){                                     // asteapta un raspuns de la slave i
+ 117   4                case TMO: Error("\n\r Timeout nod ");                 // afiseaza eroare Timeout nod i
+ 118   4                          if(AFISARE) UART0_Putch(i + '0');
+ 119   4                          break;
+ 120   4                
+ 121   4                case ROK: Afisare_mesaj();                break;  // a primit un mesaj de la master, il afiseaza si trebuie sa
+             - raspunda
+ 122   4                case ERI: Error("\n\r Err incadrare!");   break;  // afiseaza Eroare incadrare
+ 123   4                case ERA: Error("\n\r Err adresa!");      break;  // afiseaza Eroare adresa
+ 124   4                case TIP: Error("\n\r Mesaj nec!!");      break;  // afiseaza Tip mesaj necunoscut
+ 125   4                case OVR: Error("\n\r Err suprap!");      break;  // afiseaza Eroare suprapunere
+ 126   4                case ESC: Error("\n\r Eroare SC!");       break;  // afiseaza Eroare SC
+ 127   4                default:  Error("\n\r Cod err nec!");     break;  // afiseaza Eroare necunoscuta
+ 128   4              }
+ 129   3              
+ 130   3              STARE_NOD = 2;                    // revine in starea 2 (a primit sau nu un raspuns de la slave, trece la urmato
+             -rul slave)
+ 131   3              
+ 132   3              break;
+ 133   3          }
+ 134   2          UserIO();             // apel functie interfata
+ 135   2        }
+ 136   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    641    ----
+   CONSTANT SIZE    =    167    ----
+   XDATA SIZE       =    279       1
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

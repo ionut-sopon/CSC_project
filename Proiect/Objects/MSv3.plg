@@ -1,0 +1,45 @@
+<html>
+<body>
+<pre>
+<h1>µVision3 Build Log</h1>
+<h2>Project:</h2>
+G:\Contul meu Drive\My Work\Cursuri\Comunicatii in sisteme de conducere\Proiect\2022-2023\MSvX - moodle\MSv3 - uV3.uv2
+Project File Date:  03/03/2023
+
+<h2>Output:</h2>
+Build target 'MSv3 - uV3'
+compiling timer.c...
+compiling uart1.c...
+compiling lcd.c...
+compiling keyb.c...
+compiling osc.c...
+compiling port.c...
+compiling uart0.c...
+compiling wdt.c...
+compiling MS.c...
+MS.C(25): warning C280: 'found': unreferenced local variable
+compiling TxMesajV3.c...
+TXMESAJV3.C(17): warning C280: 'i': unreferenced local variable
+TXMESAJV3.C(18): warning C280: 'sc': unreferenced local variable
+TXMESAJV3.C(18): warning C280: 'ptr': unreferenced local variable
+TXMESAJV3.C(18): warning C280: 'j': unreferenced local variable
+compiling RxMesajV3.c...
+RXMESAJV3.C(127): warning C173: missing return-expression
+RXMESAJV3.C(18): warning C280: 'i': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'j': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'sc': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'ch': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'adresa_hw_src': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'screc': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'src': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'dest': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'lng': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'tipmes': unreferenced local variable
+RXMESAJV3.C(19): warning C280: 'ptr': unreferenced local variable
+compiling TERM-FSA.c...
+TERM-FSA.C(28): warning C280: 'cmd': unreferenced local variable
+TERM-FSA.C(28): warning C280: 'dest': unreferenced local variable
+TERM-FSA.C(28): warning C280: 'lng': unreferenced local variable
+linking...
+Program Size: data=9.0 xdata=366 code=4236
+".\Objects\MSv3" - 0 Error(s), 20 Warning(s).
