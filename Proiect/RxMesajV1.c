@@ -173,7 +173,6 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 	}			
 																
 														
-	return TMO;													
 }															
 
 
