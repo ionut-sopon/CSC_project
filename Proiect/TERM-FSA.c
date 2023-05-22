@@ -8,8 +8,8 @@
 
 void Afisare_meniu(void);					// afisare meniu initial
 void Afisare_mesaj(void);					// afisare mesaj receptionat
-void Citire_mesaj(unsigned char i);			// preluare mesaj pentru a fi transmis catre nodul i
-void Delay(int ms);								// intarziere programabila
+void Citire_mesaj(unsigned char i);				// preluare mesaj pentru a fi transmis catre nodul i
+void Delay(int ms);						// intarziere programabila
 void Error(char *ptr);						// afisare mesaj de eroare
 
 unsigned char TERM_Input(void);
@@ -39,67 +39,67 @@ void UserIO(void){					// interfata cu utilizatorul
 								
 												AFISARE = 0;					// blocheaza afisarea (AFISARE = 0)
 												STARE_IO = 1;					// trece in starea 1
-												cmd = '1';						// comanda este '1'
+												cmd = '1';					// comanda este '1'
 									break;
 							
 							case '2': UART0_Putstr("\n\rStare Nod = ");	// afiseaza Stare Nod:
 								
 												AFISARE = 0;					// blocheaza afisarea (AFISARE = 0)
 												STARE_IO = 1;					// trece in starea 1
-												cmd = '2';						// comanda este '2'
-							break;												
+												cmd = '2';					// comanda este '2'
+									break;												
 						}
 						break;
 									
-			case 1:	if(cmd == '1' && tasta < '5' && tasta >= '0' && tasta != ADR_NOD+'0') // daca comanda e '1' si adresa e intre 0-4, mai putin adresa proprie
+			case 1:	if(cmd == '1' && tasta < '5' && tasta >= '0' && tasta != ADR_NOD+'0') 						// daca comanda e '1' si adresa e intre 0-4, mai putin adresa proprie
 							{											
-								dest = tasta - '0';									// extrage dest din tasta
+								dest = tasta - '0';								// extrage dest din tasta
 								if(retea[dest].full)								// Daca este deja un mesaj in buffer ...
 								{
-										Error("\n\r!Buffer plin!");			// afiseaza Buffer plin
+										Error("\n\r!Buffer plin!");					// afiseaza Buffer plin
 			
-										STARE_IO = 0;										// trece in starea 0, s-a terminat tratarea comenzii '1'
-										Afisare_meniu();								// afisare meniu
+										STARE_IO = 0;							// trece in starea 0, s-a terminat tratarea comenzii '1'
+										Afisare_meniu();						// afisare meniu
 								}
 								else		// altfel ...
 								{
 										if(TIP_NOD == MASTER)						// daca nodul e master
-											retea[dest].bufbin.adresa_hw_dest = dest;										// pune in bufferul dest adresa hw dest
+											retea[dest].bufbin.adresa_hw_dest = dest;		// pune in bufferul dest adresa hw dest
 										else										
-											retea[dest].bufbin.adresa_hw_dest = ADR_MASTER;						  // pune in bufferul dest  adresa hw dest
+											retea[dest].bufbin.adresa_hw_dest = ADR_MASTER;		// pune in bufferul dest  adresa hw dest
 								
 											retea[dest].bufbin.src = ADR_NOD;														// pune in bufferul dest  adresa nodului sursa
 											retea[dest].bufbin.dest = dest;	 														// pune in bufferul dest  adresa nodului destinatie
-											UART0_Putstr("\n\r Introdu Mesajul:> ");										// cere introducerea mesajului
+											UART0_Putstr("\n\r Introdu Mesajul:> ");		// cere introducerea mesajului
 			
 											lng=0;																											// initializeaza lng = 0 
 											STARE_IO=2;																									// trece in starea 2, sa astepte mesajul
 								}
 							}
-							if(cmd == '2' && tasta < '5' && tasta >= '0')												// daca comanda e '2' si adresa e intre 0-4
+							if(cmd == '2' && tasta < '5' && tasta >= '0')						// daca comanda e '2' si adresa e intre 0-4
 									 {
-											dest = tasta - '0';							// extrage dest din tasta
-											if(retea[dest].full)						// Daca este deja un mesaj in buffer ...
-												Error("\n\r!Buffer plin!");		// Afiseaza Buffer plin
-											else      											// altfel
-												Error("\n\r!Buffer gol!");		// Afiseaza Buffer gol
+											dest = tasta - '0';					// extrage dest din tasta
+											if(retea[dest].full)					// Daca este deja un mesaj in buffer ...
+												Error("\n\r!Buffer plin!");			// Afiseaza Buffer plin
+											else      							// altfel
+												Error("\n\r!Buffer gol!");			// Afiseaza Buffer gol
 																				
-												STARE_IO=0;										// trece in starea 0, s-a terminat tratarea comenzii
-												Afisare_meniu();							// afisare meniu
+												STARE_IO=0;					// trece in starea 0, s-a terminat tratarea comenzii
+												Afisare_meniu();				// afisare meniu
 										}
 						break;
 		
-			case 2:		if(tasta != 0x0d && lng < NR_CHAR_MAX) 			// daca tasta e diferita de CR ('\r' si de '*' si nu s-a ajuns la limita maxima a bufferului de caractere
-										retea[dest].bufbin.date[lng++] = tasta;			// stocheaza codul tastei apasate in bufferul de date si incrementeaza lng
+			case 2:		if(tasta != 0x0d && lng < NR_CHAR_MAX) 									// daca tasta e diferita de CR ('\r' si de '*' si nu s-a ajuns la limita maxima a bufferului de caractere
+										retea[dest].bufbin.date[lng++] = tasta;				// stocheaza codul tastei apasate in bufferul de date si incrementeaza lng
 				
 									
-								if(tasta == '\r' || lng >= NR_CHAR_MAX)		// daca s-a atins nr maxim de caractere sau s-a apasat Enter ('\r') sau '*'
+								if(tasta == '\r' || lng >= NR_CHAR_MAX)						// daca s-a atins nr maxim de caractere sau s-a apasat Enter ('\r') sau '*'
 								{
 										retea[dest].bufbin.lng = lng;					// stocheaza lng
-										retea[dest].bufbin.tipmes = USER_MES;	// pune in bufbin tipul mesajului (USER_MES)
-										retea[dest].full = 1;									// marcheaza buffer plin
-										STARE_IO = 0;													// trece in starea 0, s-a terminat tratarea comenzii
-										Afisare_meniu();											// afisare meniu
+										retea[dest].bufbin.tipmes = USER_MES;				// pune in bufbin tipul mesajului (USER_MES)
+										retea[dest].full = 1;						// marcheaza buffer plin
+										STARE_IO = 0;							// trece in starea 0, s-a terminat tratarea comenzii
+										Afisare_meniu();						// afisare meniu
 								}
 								
 								break;	
@@ -118,11 +118,11 @@ void Afisare_meniu(void){				  			// afisare meniu initial
 	
 #if(PROTOCOL == MS)
 	if(TIP_NOD == MASTER){
-		UART0_Putstr(" Master ");	// daca programul se executa pe nodul master
+		UART0_Putstr(" Master ");					// daca programul se executa pe nodul master
 		LCD_PutStr(LCD_line, LCD_col, " Master:");
 	}
 	else{ 
-		UART0_Putstr(" Slave ");						// daca programul se executa pe un nod slave
+		UART0_Putstr(" Slave ");					// daca programul se executa pe un nod slave
 		LCD_PutStr(LCD_line, LCD_col, " Slave:");
 	}
 #elif(PROTOCOL == JETON)
@@ -139,7 +139,7 @@ void Afisare_meniu(void){				  			// afisare meniu initial
 	UART0_Putch(ADR_NOD + '0');						// afiseaza adresa nodului
 	LCD_Putch(ADR_NOD + '0');
 #if(TEMA == 1 || TEMA == 3)
-	UART0_Putstr(":ASC" );								// afiseaza parametrii specifici temei
+	UART0_Putstr(":ASC" );							// afiseaza parametrii specifici temei
 	LCD_PutStr(LCD_line, LCD_col, " ASC");
 #elif(TEMA == 2 || TEMA == 4)
 	UART0_Putstr(":BIN" );
@@ -151,23 +151,23 @@ void Afisare_meniu(void){				  			// afisare meniu initial
 
 
 //***********************************************************************************************************
-void Afisare_mesaj(void){          		// afisare mesaj din bufferul de receptie i
+void Afisare_mesaj(void){          								// afisare mesaj din bufferul de receptie i
 	unsigned char j, lng, *ptr;
-	if(retea[ADR_NOD].full){						// exista mesaj in bufferul de receptie?
+	if(retea[ADR_NOD].full){								// exista mesaj in bufferul de receptie?
 		lng = retea[ADR_NOD].bufbin.lng;
 		UART0_Putstr("\n\r>Rx: De la nodul ");
 		LCD_DelLine(1);
 		LCD_PutStr(1,0, "Rx: ");		
-		UART0_Putch(retea[ADR_NOD].bufbin.src + '0');			// afiseaza adresa nodului sursa al mesajului
+		UART0_Putch(retea[ADR_NOD].bufbin.src + '0');					// afiseaza adresa nodului sursa al mesajului
 		LCD_Putch(retea[ADR_NOD].bufbin.src + '0');
 		
 		UART0_Putstr(": ");
 		LCD_PutStr(LCD_line, LCD_col, ">: ");	
 		
 		for(j = 0, ptr = retea[ADR_NOD].bufbin.date; j < lng; j++) UART0_Putch(*ptr++);	// afiseaza mesajul, caracter cu caracter
-		for(j = 0, ptr = retea[ADR_NOD].bufbin.date; j < lng; j++) LCD_Putch(*ptr++);		// afiseaza mesajul, caracter cu caracter
+		for(j = 0, ptr = retea[ADR_NOD].bufbin.date; j < lng; j++) LCD_Putch(*ptr++);	// afiseaza mesajul, caracter cu caracter
 
-		retea[ADR_NOD].full = 0;					// mesajul a fost afisat, marcheaza buffer gol
+		retea[ADR_NOD].full = 0;							// mesajul a fost afisat, marcheaza buffer gol
 	}
 }
 
