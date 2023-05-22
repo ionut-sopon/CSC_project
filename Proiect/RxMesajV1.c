@@ -122,7 +122,7 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 				retea[dest].bufbin.dest = dest; 			// M: stocheaza in bufbin adresa nodului destinatie al mesajului	
 				retea[dest].bufbin.lng = lng; 				// M: stocheaza lng
 
-				for(j=0; j<retea[dest].bufbin.lng-1; j++) 		// M: determina un octet de date
+				for(j=0; j<retea[dest].bufbin.lng; j++) 		// M: determina un octet de date
 				{ 
 					temp_data = ascii2bin(ptr);
 					retea[dest].bufbin.date[j] = temp_data;																	
@@ -145,7 +145,7 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 			{ 	
 				retea[ADR_NOD].bufbin.src = src;			// S: stocheaza la destsrc codul nodului sursa al mesajului	
 				retea[ADR_NOD].bufbin.lng = lng;			// S: stocheaza lng
-				for(j=0; j<retea[ADR_NOD].bufbin.lng-1; j++) 		// S: determina un octet de date
+				for(j=0; j<retea[ADR_NOD].bufbin.lng; j++) 		// S: determina un octet de date
 				{ 
 					temp_data = ascii2bin(ptr);
 					retea[ADR_NOD].bufbin.date[j] = temp_data;																	
