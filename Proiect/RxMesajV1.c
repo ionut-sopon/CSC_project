@@ -110,58 +110,58 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 			if(TIP_NOD==MASTER) 							// Daca nodul este master...
 				if(retea[dest].full == 1) 
 					return OVR; 						// M: bufferul destinatie este deja plin, terminare receptie
-			lng = ascii2bin(ptr); 						// M+S: determina lng
+			lng = ascii2bin(ptr); 							// M+S: determina lng
 			ptr += 2; 
-			screc += lng;    						// M+S: ia in calcul in screc lungimea datelor
+			screc += lng;    							// M+S: ia in calcul in screc lungimea datelor
 
-			if(TIP_NOD==MASTER)  						// Daca nodul este master...
+			if(TIP_NOD==MASTER)  							// Daca nodul este master...
 			{	
-				retea[dest].bufbin.adresa_hw_src = ADR_NOD; 		// M: stocheaza in bufbin adresa HW src	
-				retea[dest].bufbin.tipmes = tipmes; 			// M: stocheaza in bufbin tipul mesajului	
-				retea[dest].bufbin.src = src; 				// M: stocheaza in bufbin adresa nodului sursa al mesajului	
-				retea[dest].bufbin.dest = dest; 			// M: stocheaza in bufbin adresa nodului destinatie al mesajului	
-				retea[dest].bufbin.lng = lng; 				// M: stocheaza lng
+				retea[dest].bufbin.adresa_hw_src = ADR_NOD; 			// M: stocheaza in bufbin adresa HW src	
+				retea[dest].bufbin.tipmes = tipmes; 				// M: stocheaza in bufbin tipul mesajului	
+				retea[dest].bufbin.src = src; 					// M: stocheaza in bufbin adresa nodului sursa al mesajului	
+				retea[dest].bufbin.dest = dest; 				// M: stocheaza in bufbin adresa nodului destinatie al mesajului	
+				retea[dest].bufbin.lng = lng; 					// M: stocheaza lng
 
-				for(j=0; j<retea[dest].bufbin.lng; j++) 		// M: determina un octet de date
+				for(j=0; j<retea[dest].bufbin.lng; j++) 			// M: determina un octet de date
 				{ 
 					temp_data = ascii2bin(ptr);
 					retea[dest].bufbin.date[j] = temp_data;																	
 					ptr += 2;
-					screc += temp_data;          			// M: ia in calcul in screc octetul de date
+					screc += temp_data;          				// M: ia in calcul in screc octetul de date
 				}
-				sc = ascii2bin(ptr);				 	// M: determina suma de control
-				retea[dest].bufbin.sc = sc;				// M: pune sc in bufbin
+				sc = ascii2bin(ptr);				 		// M: determina suma de control
+				retea[dest].bufbin.sc = sc;					// M: pune sc in bufbin
 				if(sc==screc)
 				{
-					retea[dest].full = 1 ; 				// M: mesaj corect, marcare buffer plin
+					retea[dest].full = 1 ; 					// M: mesaj corect, marcare buffer plin
 					return ROK;
 				}		
 				else
 				{
-					return ESC;  			 		// M: eroare SC, terminare receptie
+					return ESC;  			 			// M: eroare SC, terminare receptie
 				}
 			}
-			else								// Daca nodul este slave ...
+			else									// Daca nodul este slave ...
 			{ 	
-				retea[ADR_NOD].bufbin.src = src;			// S: stocheaza la destsrc codul nodului sursa al mesajului	
-				retea[ADR_NOD].bufbin.lng = lng;			// S: stocheaza lng
-				for(j=0; j<retea[ADR_NOD].bufbin.lng; j++) 		// S: determina un octet de date
+				retea[ADR_NOD].bufbin.src = src;				// S: stocheaza la destsrc codul nodului sursa al mesajului	
+				retea[ADR_NOD].bufbin.lng = lng;				// S: stocheaza lng
+				for(j=0; j<retea[ADR_NOD].bufbin.lng; j++) 			// S: determina un octet de date
 				{ 
 					temp_data = ascii2bin(ptr);
 					retea[ADR_NOD].bufbin.date[j] = temp_data;																	
 					ptr += 2;
-					screc += temp_data;          			// S: ia in calcul in screc octetul de date
+					screc += temp_data;          				// S: ia in calcul in screc octetul de date
 				}
-				sc = ascii2bin(ptr);					// S: determina suma de control				
+				sc = ascii2bin(ptr);						// S: determina suma de control				
 
 				if(sc==screc)				
 				{
-					retea[ADR_NOD].full = 1 ;			// S: mesaj corect, marcare buffer plin
+					retea[ADR_NOD].full = 1 ;				// S: mesaj corect, marcare buffer plin
 					return ROK;
 				}
 				else
 				{																	
-					return ESC;					// S: eroare SC, terminare receptie
+					return ESC;						// S: eroare SC, terminare receptie
 				}	
 			}
 		}
@@ -186,5 +186,4 @@ unsigned char ascii2bin(unsigned char *ptr){			// converteste doua caractere ASC
 	else bin += (*ptr++ - '0');											// contributia celui de-al doilea caracter daca este cifra
 	return bin;
 }
-
 
