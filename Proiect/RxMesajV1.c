@@ -16,11 +16,11 @@ unsigned char ascii2bin(unsigned char *ptr);			// functie de conversie 2 caracte
 
 //***********************************************************************************************************
 unsigned char RxMesaj(unsigned char i){		// receptie mesaj															   
-	unsigned char j, ch, sc, adresa_hw_dest, adresa_hw_src, screc, src, dest, lng, tipmes, *ptr;
+	unsigned char j, ch, sc, adresa_hw_dest, adresa_hw_src, screc, src, dest, lng, tipmes, *ptr, temp_data;
 	if(TIP_NOD == MASTER)									// Daca nodul este master...
 	{	
 		ch = UART1_Getch_TMO(WAIT);							// M: asteapta cu timeout primul caracter al raspunsului de la slave
-		if(timeout)				        				// M: timeout, terminare receptie
+		if(timeout)				        				      // M: timeout, terminare receptie
 			return TMO;	
 		else													
 		{
@@ -29,7 +29,7 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 			{
 				do{ 								// M: ignora restul mesajului
 					ch = UART1_Getch_TMO(5);															
-				}while(timeout)
+				}while(!timeout);
 				return ERI;											
 			}
 			else					  				// M: adresa HW ASCII gresita, terminare receptie
@@ -46,7 +46,7 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 				{															
 					do{ 							// M: ignora restul mesajului
 						ch = UART1_Getch_TMO(5);															
-					}while(timeout)
+					}while(!timeout);
 					return ERA;				 		// M: adresa HW ASCII gresita, terminare receptie
 				}
 			}	
@@ -54,31 +54,34 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 	}
 	else 											// Daca nodul este slave...
 	{ 
-		INTOARCERE:
-		ch = UART1_Getch_TMO(2*WAIT + ADR_NOD*WAIT);    				// S: asteapta cu timeout primirea primului caracter al unui mesaj de la master
-		if(timeout)									// S: timeout, terminare receptie
-			return TMO;	
-		if(ch !=':') goto INTOARCERE;          			 			// S: asteapta sincronizarea cu inceputul mesajului
-		ptr = retea[i].bufasc + 1;							// S: initializeaza pointerul in bufferul ASCII
-		*ptr++ = UART1_Getch_TMO(5); 	        					// S: asteapta cu timeout primul caracter ASCII al adresei HW
+		do
+		{
+			do 
+			{
+				ch = UART1_Getch_TMO(2*WAIT + ADR_NOD*WAIT);    		// S: asteapta cu timeout primirea primului caracter al unui mesaj de la master
+				if(timeout)									// S: timeout, terminare receptie
+					return TMO;	
+			}	while(ch !=':');          			 		// S: asteapta sincronizarea cu inceputul mesajului
+			ptr = retea[i].bufasc + 1;						// S: initializeaza pointerul in bufferul ASCII
+			*ptr++ = UART1_Getch_TMO(5); 	        				// S: asteapta cu timeout primul caracter ASCII al adresei HW
 
-		if(timeout)									// S: timeout, terminare receptie								
-			return CAN;													
-		*ptr-- = UART1_Getch_TMO(5);				 			// S: asteapta cu timeout al doilea caracter ASCII al adresei HW													
+			if(timeout)								// S: timeout, terminare receptie								
+				return CAN;													
+			*ptr-- = UART1_Getch_TMO(5);				 		// S: asteapta cu timeout al doilea caracter ASCII al adresei HW													
 
-		if(timeout)				 					// S: timeout, terminare receptie		
-			return CAN;
+			if(timeout)				 				// S: timeout, terminare receptie		
+				return CAN;
 
-		adresa_hw_dest = ascii2bin(ptr);  						// S: determina adresa HW destinatie
+			adresa_hw_dest = ascii2bin(ptr);  					// S: determina adresa HW destinatie
 
-		if(adresa_hw_dest != ADR_NOD) goto INTOARCERE;  				// S: iese doar cand mesajul era adresat acestui slave														
+		}	while(adresa_hw_dest != ADR_NOD);  					// S: iese doar cand mesajul era adresat acestui slave														
 	}												
 		ptr++;
 		 do{
 			 *(++ptr) = UART1_Getch_TMO(5);  					// M+S: pune in bufasc restul mesajului ASCII HEX
 			if(timeout)								// M+S: timeout, terminare receptie								
 				return CAN;	
-		 }while(*ptr != 0x0A)													 
+		 }while(*ptr != 0x0A);													 
 
 		ptr = retea[i].bufasc + 3;  							// M+S: reinitializare pointer in bufferul ASCII
 		screc = adresa_hw_dest; 							// M+S: initializeaza screc cu adresa HW dest
@@ -160,8 +163,8 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 				{																	
 					return ESC;					// S: eroare SC, terminare receptie
 				}	
-
 			}
+		}
 		else
 		{
 			sc = ascii2bin(ptr);							// M+S: determina suma de control
@@ -169,10 +172,7 @@ unsigned char RxMesaj(unsigned char i){		// receptie mesaj
 				return ESC;							// M+S: eroare SC, terminare receptie
 			return ROK;
 			
-		}
-	}			
-																
-														
+		}														
 }															
 
 
